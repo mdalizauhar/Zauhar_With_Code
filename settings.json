@@ -1,0 +1,12 @@
+{
+    "files.autoSave": "off",
+
+    "git.enableSmartCommit": false,
+    "git.autofetch": true,
+
+    "editor.formatOnSave": true,
+
+    "files.exclude": {
+        ".git": true
+    }
+}
