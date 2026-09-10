@@ -7,30 +7,41 @@ Write-Host " GitHub Auto Upload Started"
 Write-Host " Project: $ProjectPath"
 Write-Host "====================================="
 
+$lastStatus = ""
+
 while ($true) {
 
-    $changes = git status --porcelain
+    $currentStatus = (git status --porcelain | Out-String).Trim()
 
-    if ($changes) {
+    if ($currentStatus -ne $lastStatus) {
 
-        Write-Host ""
-        Write-Host "Changes detected..."
+        if ($currentStatus -ne "") {
 
-        git add .
+            Write-Host ""
+            Write-Host "Changes detected!"
+            Write-Host $currentStatus
 
-        $time = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+            git add .
 
-        git commit -m "Auto update $time"
+            $time = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
-        git push origin main
+            git commit -m "Auto update $time"
 
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "Changes pushed to GitHub."
+            git push origin main
+
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host ""
+                Write-Host "====================================="
+                Write-Host " Changes pushed to GitHub successfully!"
+                Write-Host "====================================="
+            }
+            else {
+                Write-Host "GitHub push failed."
+            }
         }
-        else {
-            Write-Host "GitHub push failed."
-        }
+
+        $lastStatus = $currentStatus
     }
 
-    Start-Sleep -Seconds 5
+    Start-Sleep -Seconds 2
 }
