@@ -3,45 +3,39 @@ $ProjectPath = "E:\Zauhar_With_Code"
 Set-Location $ProjectPath
 
 Write-Host "====================================="
-Write-Host " GitHub Auto Upload Started"
-Write-Host " Project: $ProjectPath"
+Write-Host "   GitHub Auto Upload Started"
 Write-Host "====================================="
-
-$lastStatus = ""
+Write-Host "Project: $ProjectPath"
+Write-Host ""
 
 while ($true) {
 
-    $currentStatus = (git status --porcelain | Out-String).Trim()
+    $changes = git status --porcelain
 
-    if ($currentStatus -ne $lastStatus) {
+    if ($changes) {
 
-        if ($currentStatus -ne "") {
+        Write-Host ""
+        Write-Host "Changes detected..."
 
-            Write-Host ""
-            Write-Host "Changes detected!"
-            Write-Host $currentStatus
+        git add .
 
-            git add .
+        $date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        $commitMessage = "Auto update - $date"
 
-            $time = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        git commit -m "$commitMessage"
 
-            git commit -m "Auto update $time"
-
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Commit created successfully."
             git push origin main
 
             if ($LASTEXITCODE -eq 0) {
-                Write-Host ""
-                Write-Host "====================================="
-                Write-Host " Changes pushed to GitHub successfully!"
-                Write-Host "====================================="
+                Write-Host "Successfully pushed to GitHub."
             }
             else {
-                Write-Host "GitHub push failed."
+                Write-Host "Push failed."
             }
         }
-
-        $lastStatus = $currentStatus
     }
 
-    Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 5
 }
