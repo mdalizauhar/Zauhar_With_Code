@@ -6,9 +6,23 @@ Write-Host "====================================="
 Write-Host "   GitHub Auto Upload Started"
 Write-Host "====================================="
 Write-Host "Project: $ProjectPath"
+Write-Host "Watching for file changes..."
 Write-Host ""
 
-while ($true) {
+# File watcher
+$watcher = New-Object System.IO.FileSystemWatcher
+$watcher.Path = $ProjectPath
+$watcher.IncludeSubdirectories = $true
+$watcher.EnableRaisingEvents = $true
+
+# Ignore Git internal files
+$watcher.Filter = "*.*"
+
+$action = {
+
+    Start-Sleep -Milliseconds 1000
+
+    Set-Location $ProjectPath
 
     $changes = git status --porcelain
 
@@ -25,7 +39,9 @@ while ($true) {
         git commit -m "$commitMessage"
 
         if ($LASTEXITCODE -eq 0) {
+
             Write-Host "Commit created successfully."
+
             git push origin main
 
             if ($LASTEXITCODE -eq 0) {
@@ -36,6 +52,23 @@ while ($true) {
             }
         }
     }
+}
 
-    Start-Sleep -Seconds 5
+Register-ObjectEvent `
+    -InputObject $watcher `
+    -EventName Changed `
+    -Action $action | Out-Null
+
+Register-ObjectEvent `
+    -InputObject $watcher `
+    -EventName Created `
+    -Action $action | Out-Null
+
+Register-ObjectEvent `
+    -InputObject $watcher `
+    -EventName Renamed `
+    -Action $action | Out-Null
+
+while ($true) {
+    Start-Sleep -Seconds 1
 }
